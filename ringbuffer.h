@@ -5,13 +5,13 @@
 #include <stddef.h>
 
 struct ringbuffer {
-	const size_t size;
-	const size_t elem_size;
+	size_t size;
+	size_t elem_size;
 	void *data;
 	ptrdiff_t current;
 };
 
-int rb_alloc(struct ringbuffer *rb, const size_t size, const size_t elem_size);
+struct ringbuffer *rb_alloc(size_t size, size_t elem_size);
 void rb_free(struct ringbuffer *rb);
 void rb_reset(struct ringbuffer *rb);
 

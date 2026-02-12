@@ -9,29 +9,34 @@
  * Allocates the ringbuffer
  */
 
-int rb_alloc(struct ringbuffer *rb, const size_t size, const size_t elem_size)
+struct ringbuffer *rb_alloc(size_t size, size_t elem_size)
 {
-	if (!rb || size == 0 || elem_size == 0) {
+	if (!size || !elem_size) {
 		errno = EINVAL;
 		perror(__func__);
-		return -1;
+		return NULL;
 	}
 
-	struct ringbuffer rb_temp = { .size = size, .elem_size = elem_size };
-	memcpy(rb, &rb_temp, sizeof(struct ringbuffer));
-	if (!rb) {
-		perror(__func__);
-		return -1;
-	}
-	rb->current = rb->size - 1;
+	struct ringbuffer *rb = malloc(sizeof(struct ringbuffer));
+	if (!rb)
+		goto error;
+
+	rb->size = size;
+	rb->elem_size = elem_size;
+	rb->current = size - 1;
 
 	rb->data = calloc(size, elem_size);
-	if (!rb->data) {
-		perror(__func__);
-		return -1;
-	}
+	if (!rb->data)
+		goto error_data;
 
-	return 0;
+	return rb;
+
+error_data:
+		free(rb);
+error:
+		perror(__func__);
+
+		return NULL;
 }
 
 /*
@@ -40,12 +45,17 @@ int rb_alloc(struct ringbuffer *rb, const size_t size, const size_t elem_size)
 
 void rb_free(struct ringbuffer *rb)
 {
-	if (!rb || !rb->data)
+	if (!rb)
 		return;
 
-	rb_reset(rb);
-	free(rb->data);
-	rb->data = NULL;
+	if (rb->data) {
+		rb_reset(rb);
+		free(rb->data);
+		rb->data = NULL;
+	}
+
+	free(rb);
+	rb = NULL;
 }
 
 /*
