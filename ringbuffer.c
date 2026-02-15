@@ -32,11 +32,11 @@ struct ringbuffer *rb_alloc(size_t size, size_t elem_size)
 	return rb;
 
 error_data:
-		free(rb);
+	free(rb);
 error:
-		perror(__func__);
+	perror(__func__);
 
-		return NULL;
+	return NULL;
 }
 
 /*
@@ -49,13 +49,11 @@ void rb_free(struct ringbuffer *rb)
 		return;
 
 	if (rb->data) {
-		rb_reset(rb);
 		free(rb->data);
 		rb->data = NULL;
 	}
 
 	free(rb);
-	rb = NULL;
 }
 
 /*
@@ -113,20 +111,4 @@ void rb_push(struct ringbuffer *rb, const void *elem)
 	/* Compute the destination pointer as an offset in bytes from the start of the buffer */
 
 	memcpy((char *)rb->data + rb->current * rb->elem_size, elem, rb->elem_size);
-}
-
-/*
- * Fills the ringbuffer data with zeros and resets the pointer
- */
-
-void rb_reset(struct ringbuffer *rb)
-{
-	if (!rb || !rb->data) {
-		errno = EINVAL;
-		perror(__func__);
-		return;
-	}
-
-	rb->current = rb->size - 1;
-	memset(rb->data, 0, rb->size * rb->elem_size);
 }
